@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Security.Claims;
+using System.Security.Principal;
+using System.Threading;
 
 namespace Nemes_Claims_01
 {
@@ -8,12 +10,21 @@ namespace Nemes_Claims_01
     {
         static void Main(string[] args)
         {
-            Claim claim = new Claim("Name", "Nicky");
-            //strings bad, there are standard claim types
+            Setup();
+            CheckCompatibility();
 
-            Claim newClaim = new Claim(ClaimTypes.Country, "USA");
+            Console.ReadLine();
+        }
 
-            //#AAA111 -- note identifier :)
+        private static void CheckCompatibility()
+        {
+            IPrincipal currentPrincipal = Thread.CurrentPrincipal;
+            Console.WriteLine(currentPrincipal.Identity.Name);
+        }
+
+        private static void Setup()
+        {
+            // #AAA111 - note Id
             IList<Claim> claimCollection = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, "Nicky"),
@@ -24,13 +35,16 @@ namespace Nemes_Claims_01
                 new Claim(ClaimTypes.Role, "Software Engineer")
             };
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(claimCollection);
+            ClaimsIdentity claimsIdentity = new ClaimsIdentity(
+                claimCollection, "my pretend auth type");
 
-            var authenticatedClaimsIdentity = new ClaimsIdentity(
-                claimCollection, "my pretend e-commerce website");
-            Console.WriteLine("claims identity is authenticated: " + claimsIdentity.IsAuthenticated);
-            Console.WriteLine("auth'd claims Identity is authenticated: " + authenticatedClaimsIdentity.IsAuthenticated);
-            Console.ReadKey();
+            Console.WriteLine("Claims Identity auth'd: " +
+                claimsIdentity.IsAuthenticated);
+
+            ClaimsPrincipal principal = new ClaimsPrincipal(
+                claimsIdentity);
+
+            Thread.CurrentPrincipal = principal;
         }
     }
 }
